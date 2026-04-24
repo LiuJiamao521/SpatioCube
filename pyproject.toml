@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling>=1.22"]
+build-backend = "hatchling.build"
+
+[project]
+name = "spatiocube"
+version = "0.0.0"
+description = "Multi-slice spatial transcriptomics alignment and 3D clustering."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "SpatioCube contributors" }]
+
+dependencies = [
+  # Keep lower-bounds aligned with the current working demo environment.
+  # (See `requirements.lock.txt` for the tested set.)
+  "anndata>=0.10.9",
+  "scanpy>=1.10.3",
+  "numpy>=1.24.3",
+  "h5py>=3.10.0",
+  "scipy>=1.13.1",
+  "pandas>=2.3.3",
+  "scikit-learn>=1.6.1",
+]
+
+[project.optional-dependencies]
+align_ot = [
+  "POT>=0.9.6.post1",
+]
+notebook = [
+  "ipykernel>=6.16.2",
+  "pyzmq>=22.3.0",
+]
+torch = [
+  "torch>=2.1.2",
+]
+viz = [
+  "plotly>=5",
+  "pyvista>=0.43",
+]
+leiden = [
+  "python-igraph>=0.10",
+  "leidenalg>=0.10",
+]
+dev = [
+  "pytest>=8.4.2",
+  "pytest-cov>=7.1.0",
+  "ruff>=0.15.11",
+  # Used by core alignment tests (`align_adjacent_slices_ot`).
+  "POT>=0.9.6.post1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/spatiocube"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

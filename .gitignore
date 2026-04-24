@@ -1,0 +1,84 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.python-version
+.env
+.env.*
+.pip_cache/
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.hypothesis/
+.tox/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+*.nbconvert.ipynb
+
+# Notebooks outputs (optional)
+*.html
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# IDE / logs
+*.log
+
+# Local build artifacts
+dist/
+build/
+*.egg-info/
+
+# Cursor (project-local metadata)
+.cursor/
+
+# Data / results (keep folders, ignore heavy files)
+data/**
+!data/.gitkeep
+
+# Also ignore large data anywhere in repo (common ST formats)
+**/*.h5ad
+**/*.h5
+**/*.hdf5
+**/*.loom
+**/*.mtx
+**/*.mtx.gz
+**/*.npz
+**/*.npy
+**/*.zarr/
+**/*.parquet
+**/*.feather
+**/*.csv
+**/*.tsv
+**/*.txt
+**/*.rds
+**/*.RData
+**/*.RDS
+
+# Common pipeline outputs
+**/outs/
+**/filtered_feature_bc_matrix/
+**/raw_feature_bc_matrix/
+**/spatial/
+
+# Figures (optional): keep if you want versioned figures; otherwise ignore
+# **/*.png
+# **/*.jpg
+# **/*.jpeg
+# **/*.pdf
+# **/*.svg
+
+# Local temp
+tmp/
+temp/
+
