@@ -13,6 +13,75 @@
 - **3D 聚类**：在 3D 邻接图上做 Leiden（或可选对比学习 embedding 后聚类），写入 `adata.obs['SpatioCube_cluster']`。
 - **3D 可视化**：Plotly / PyVista 进行叠片式 3D 展示与检查。
 
+## 3D 聚类：Graph Diffusion + Graph-regularized GMM（推荐的“原创主线”）
+
+SpatioCube 的定位并不止于“对齐”。对齐只是把多切片放到同一坐标系的**先决条件**；真正的增益来自 **利用相邻切片信息做更强的 3D 空间域（domain）检测/聚类**。
+
+我们推荐的默认 3D 聚类算法是：
+
+- **加权 3D 图构建**：融合三类边
+  - **intra-slice**：切片内空间近邻（XY）
+  - **inter-slice**：相邻切片的 3D 近邻（XYZ，z 会按 `lambda_z` 缩放）
+  - **mapping edges（关键）**：对齐诱导的跨片对应（来自 `align_adjacent_slices_ot` 写入的 `uns['SpatioCube']['map_to_prev']`）
+- **跨切片扩散表示**（Personalized PageRank diffusion）：
+  \[
+  Z_{t+1} = (1-\eta)X + \eta A Z_t
+  \]
+  其中 \(X\) 是表达 embedding（默认 SVD），\(A\) 是加权图的行归一化邻接。扩散把邻片信息沿 mapping/inter 边“灌入”本片，从而提升稳健性与一致性。
+- **图正则 GMM（mean-field EM）**：在扩散后的表示 \(Z\) 上做对数似然 + 图一致性正则的聚类更新，使得跨片对应/空间邻近的点更倾向于同一 cluster。
+
+### 最小使用示例（建议替代 Leiden 作为主聚类）
+
+```python
+import spatiocube as scb
+
+adata = scb.read_merged_h5ad()
+cube = scb.SpatioCube.from_merged_h5ad(adata, order_mode="infer", z_spacing=50.0)
+
+# 先对齐（会写入跨片 mapping：map_to_prev）
+from spatiocube.align import align_adjacent_slices_ot
+align_adjacent_slices_ot(
+    cube,
+    strategy="middle_out",
+    transport="emd",
+    subsample_n=2000,
+    svd_dim=50,
+    n_iter=3,
+)
+
+# 3D 扩散 + 图正则 GMM 聚类（写入 obs['SpatioCube_cluster']）
+res = scb.cluster_3d_diffusion_gmm(
+    cube,
+    n_clusters=12,
+    svd_dim=50,
+    alpha_intra=1.0,
+    beta_map=2.0,
+    gamma_inter=1.0,
+    eta=0.5,
+    lam=1.0,
+    em_iters=30,
+    random_state=0,
+)
+```
+
+### 参数直觉（便于调参/写 ablation）
+
+- **`beta_map`**：跨片对应边的强度（越大越强调“相邻切片一致性”）。做 2D benchmark 时，这是最值得扫的超参。
+- **`eta`**：扩散强度（越大信息传播越强，过大可能过平滑）。
+- **`lam`**：聚类阶段的图一致性正则强度（越大 cluster 更平滑，过大可能把边界抹掉）。
+
+### 为什么这个路线可 benchmark（用 2D 标注评估 3D 算法）
+
+3D 真值往往缺失，但 3D 聚类的输出在每张切片上都会投影为 2D 聚类。因此建议的评估闭环是：
+
+- **每片 2D 精度（主指标）**：把 `SpatioCube_cluster` 与每片已有的 region/layer 标注对比，报告 ARI/NMI/F1。
+- **跨片一致性（3D 专属指标）**：在 mapping 边上统计 \(\Pr(c_i=c_j)\)，看对齐后的实体是否保持一致标签。
+- **3D 增益 ablation**：对比
+  - 2D-only（只用 intra-slice 图）
+  - 3D-w/o-map（去掉 mapping 边）
+  - full-3D（intra + inter + map）
+  用每片 ARI 的提升证明“相邻切片信息确实带来增益”。
+
 ## 关键数据约定（非常重要）
 
 - **切片标识**：默认使用 `adata.obs['sampleid']` 作为切片键（可通过 `slice_key=` 修改）。
@@ -126,6 +195,10 @@ d^2 = \|x_i-x_j\|^2 + \lambda_z (z_i-z_j)^2
   - `None`：对子采样点用 dense expression cost（更稳，但 \(O(n^2)\)）
   - 整数：用表达 KNN 限制候选（更快，但过强裁剪可能错过真匹配）
 - **`paired_subsample=True`**：尽量让源/目标子采样“成对”，避免 OT 代价矩阵退化。
+- **`strategy` / `anchor_index`（对齐路径）**：
+  - `strategy="sequential"`（默认）：`1→0, 2→1, ...` 链式累积到第 0 片坐标系；实现简单，但每步小误差会沿序列累积，长序列上可能出现“缓慢扭转/漂移”。
+  - `strategy="middle_out"`：以 `anchor_index`（默认 `floor((n_slices-1)/2)`）为中心向两侧传播，通常能显著减轻累积漂移；仍属于 **pairwise 刚性**，不是全局 bundle adjustment。
+  - 切片 **顺序** 仍由 `order_mode="infer"` 时的 `infer_slice_order` 用 **全局** pairwise 距离 + Held–Karp 最佳路径估计；与 `strategy` 解决的是不同层面的问题。
 
 ## 输出字段（写回到 AnnData 的结果）
 

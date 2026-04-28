@@ -1,0 +1,43 @@
+## SpatioCube demo tested environment (conda env: `spatiocube`)
+##
+## Purpose
+## - Provide a small, readable lock snapshot for the *key* scientific stack that
+##   the current demo was developed and tested with.
+## - This is not a full lockfile of every transitive dependency.
+##
+## Python
+## - Python==3.10.x (from `/cluster2/huanglab/jiamao/conda/envs/spatiocube/`)
+##
+## Core
+anndata==0.10.9
+scanpy==1.10.3
+numpy==1.24.3
+h5py==3.10.0
+scipy==1.13.1
+pandas==2.3.3
+scikit-learn==1.6.1
+
+## Notebook / kernel (needed for Jupyter runs on old GLIBC nodes)
+ipykernel==6.16.2
+pyzmq==22.3.0
+
+## Alignment / OT
+POT==0.9.6.post1
+
+## Optional deep / contrastive
+torch==2.1.2
+
+## Clustering (optional)
+python-igraph==0.11.9
+leidenalg==0.10.2
+
+## Viz / notebook helpers (optional but commonly needed)
+plotly==6.3.1
+pyvista==0.46.3
+nbformat==5.10.4
+
+## Dev
+pytest==8.4.2
+pytest-cov==7.1.0
+ruff==0.15.11
+

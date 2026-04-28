@@ -45,6 +45,7 @@ build/
 # Data / results (keep folders, ignore heavy files)
 data/**
 !data/.gitkeep
+!data/format.ipynb
 
 # Also ignore large data anywhere in repo (common ST formats)
 **/*.h5ad
@@ -61,6 +62,8 @@ data/**
 **/*.csv
 **/*.tsv
 **/*.txt
+!requirements.lock.txt
+!requirements.txt
 **/*.rds
 **/*.RData
 **/*.RDS
@@ -81,4 +84,4 @@ data/**
 # Local temp
 tmp/
 temp/
-
+git_push.txt

@@ -1,0 +1,11 @@
+# Standard install entrypoint for users who expect `requirements.txt`.
+#
+# This project is configured via `pyproject.toml`.
+# - For a tested version snapshot, see `requirements.lock.txt`.
+# - For editable install with common extras:
+#     pip install -r requirements.txt
+#
+# Note: `-e .` requires installing from a local clone of the repo.
+
+-e .[align_ot,leiden,viz,notebook,torch]
+

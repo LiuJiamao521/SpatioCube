@@ -117,3 +117,12 @@ def test_align_adjacent_slices_ot_recover_known_rigid_transform():
     err = np.max(np.abs(xy1_hat - xy0))
     assert err < 1e-2
 
+
+def test_alignment_pairs_middle_out_order():
+    from spatiocube.align import _alignment_pairs
+
+    assert _alignment_pairs(2, "sequential", None) == [(1, 0)]
+    assert _alignment_pairs(2, "middle_out", None) == [(1, 0)]
+    assert _alignment_pairs(3, "middle_out", None) == [(0, 1), (2, 1)]
+    assert _alignment_pairs(4, "middle_out", None) == [(0, 1), (2, 1), (3, 2)]
+
