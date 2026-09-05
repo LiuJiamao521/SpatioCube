@@ -2,9 +2,7 @@
 
 面向空间转录组（ST）多切片对齐与三维空间聚类的 Python 工具。
 
-> 这份 README 也作为“交接文档”：下一次优化时，新的 agent 只要先读这里，就能快速理解项目目标、数据约定、核心 API、关键参数与常见坑。
-
-## Demo 目前实现了什么（你当前能用到的能力）
+## Demo 目前实现了什么
 
 - **切片拆分**：按 `adata.obs['sampleid']` 拆分多切片（不依赖 index/字符串排序推断顺序）。
 - **切片顺序推断**：基于表达 embedding 的跨切片距离（可选 OT 距离）+ 全局最短路径，推断一个“整体流畅”的线性顺序。
@@ -13,7 +11,7 @@
 - **3D 聚类**：在 3D 邻接图上做 Leiden（或可选对比学习 embedding 后聚类），写入 `adata.obs['SpatioCube_cluster']`。
 - **3D 可视化**：Plotly / PyVista 进行叠片式 3D 展示与检查。
 
-## 3D 聚类：Graph Diffusion + Graph-regularized GMM（推荐的“原创主线”）
+## 3D 聚类：Graph Diffusion + Graph-regularized GMM
 
 SpatioCube 的定位并不止于“对齐”。对齐只是把多切片放到同一坐标系的**先决条件**；真正的增益来自 **利用相邻切片信息做更强的 3D 空间域（domain）检测/聚类**。
 
@@ -30,7 +28,7 @@ SpatioCube 的定位并不止于“对齐”。对齐只是把多切片放到同
   其中 \(X\) 是表达 embedding（默认 SVD），\(A\) 是加权图的行归一化邻接。扩散把邻片信息沿 mapping/inter 边“灌入”本片，从而提升稳健性与一致性。
 - **图正则 GMM（mean-field EM）**：在扩散后的表示 \(Z\) 上做对数似然 + 图一致性正则的聚类更新，使得跨片对应/空间邻近的点更倾向于同一 cluster。
 
-### 最小使用示例（建议替代 Leiden 作为主聚类）
+### 最小使用示例
 
 ```python
 import spatiocube as scb
@@ -64,7 +62,7 @@ res = scb.cluster_3d_diffusion_gmm(
 )
 ```
 
-### 参数直觉（便于调参/写 ablation）
+### 参数直觉
 
 - **`beta_map`**：跨片对应边的强度（越大越强调“相邻切片一致性”）。做 2D benchmark 时，这是最值得扫的超参。
 - **`eta`**：扩散强度（越大信息传播越强，过大可能过平滑）。
